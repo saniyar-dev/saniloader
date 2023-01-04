@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"sync"
 	"saniloader/config"
+	"sync"
 )
 
 var mu sync.Mutex
@@ -28,13 +28,9 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
     reverseProxy.ServeHTTP(w, r)
 }
 
-func Serve() {
+func Serve(serveCfg config.ConfigType) {
+	cfg = serveCfg
 	var err error
-
-	cfg, err = config.ReadConfig()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 
     s := http.Server{
         Addr:    ":" + cfg.Proxy.Port,
