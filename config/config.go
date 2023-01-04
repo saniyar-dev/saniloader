@@ -1,99 +1,13 @@
 package config
 
 import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"os/exec"
+	"strconv"
 	"strings"
 )
-
-// import (
-// 	"encoding/json"
-// 	"io/ioutil"
-// 	"log"
-// 	"os/exec"
-// 	"strings"
-// )
-
-// type ConfigType struct {
-//     Proxy    ProxyType     `json:"proxy"`
-// 	Backends []BackendType `json:"backends"`
-// }
-
-// type ProxyType struct {
-//     Port string `json:"port"`
-// }
-
-// type BackendType struct {
-// 	Id string
-// 	Name string
-// 	URL string `json:"url"`
-// 	IsDead bool
-// }
-
-// var cfg ConfigType
-
-// func ReadConfig() (ConfigType, error) {
-//     data, err := ioutil.ReadFile("./config.json")
-//     if err != nil {
-//         log.Fatal(err.Error())
-// 		return ConfigType{}, err
-//     }
-//     json.Unmarshal(data, &cfg)
-
-// 	return CorrectConfig(cfg)
-// }
-
-// func CorrectConfig(cfg ConfigType) (ConfigType, error) {
-// 	runningContainers, err := getDockerContainers()
-// 	if err != nil {
-// 		return ConfigType{}, err
-// 	}
-
-// 	var newCfg ConfigType
-// 	newCfg.Proxy = cfg.Proxy
-// 	for _, backend := range cfg.Backends {
-// 		isUp := false
-// 		for _, container := range runningContainers {
-// 			if backend.Name == container.Name {
-// 				isUp = true
-// 			}
-// 		}
-
-// 		if isUp {
-// 			newCfg.Backends = append(newCfg.Backends, BackendType{
-// 				Name: backend.Name,
-// 				Id: backend.Id,
-// 				URL: backend.URL,
-// 				IsDead: false,
-// 			})
-// 		}
-// 	}
-
-// 	return newCfg, nil
-// }
-
-// func getDockerContainers() ([]BackendType, error) {
-// 	cmd := exec.Command("bash", "-c", `sudo docker ps --format '{{ .ID }}\t{{.Names}}'`)
-// 	output, err := cmd.CombinedOutput()
-// 	if err != nil {
-// 		return []BackendType{}, err
-// 	}
-
-// 	var ans []BackendType
-// 	containersOutput := strings.Split(string(output), "\n")
-// 	for _, containerDataLine := range containersOutput {
-// 		containerDataArr := strings.Split(containerDataLine, "\t")
-// 		if len(containerDataArr) < 2 {
-// 			continue
-// 		}
-// 		ans = append(ans, BackendType{
-// 			Id: containerDataArr[0],
-// 			Name: containerDataArr[1],
-// 			IsDead: false,
-// 		})
-// 	}
-
-// 	return ans, nil
-// }
 
 type ConfigType struct {
 	Proxy ProxyType `json:"proxy"`
@@ -112,8 +26,36 @@ type BackendType struct {
 
 var _DEFAULTPORT string = "3000"
 
-func ReadConfig() (ConfigType, error) {
-	return ConfigType{}, nil
+func correctConfig(cfg ConfigType) (ConfigType, error) {
+	if cfg.Proxy.Port == "" {
+		cfg.Proxy.Port = _DEFAULTPORT
+	}
+
+
+	for index, backend := range cfg.Backends {
+		if backend.Name == "" {
+			cfg.Backends[index].Name = "container " + strconv.Itoa(index)
+		}
+		if backend.Id == "" {
+			cfg.Backends[index].Id = cfg.Backends[index].Name
+		}
+
+		if backend.URL == "" {
+			return ConfigType{}, errors.New("no url provided for some container. please correct the config file first")
+		}
+	}
+	return cfg, nil
+}
+
+func ReadConfig(ConfigPath string) (ConfigType, error) {
+	var cfg ConfigType
+    data, err := ioutil.ReadFile(ConfigPath)
+    if err != nil {
+		return ConfigType{}, err
+    }
+    json.Unmarshal(data, &cfg)
+
+	return correctConfig(cfg)
 }
 
 func MakeConfig() (ConfigType, error){
