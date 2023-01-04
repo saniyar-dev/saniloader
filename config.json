@@ -1,0 +1,17 @@
+{
+  "proxy": {
+    "port": "3000"
+  },
+  "backends": [
+    {
+      "id": "3430921a6d41",
+      "name": "nginx-xui",
+      "url": "http://localhost:9001/"
+    },
+    {
+      "id": "5042c2ea6f15",
+      "name": "nginx-test-test",
+      "url": "http://localhost:9000/"
+    }
+  ]
+}

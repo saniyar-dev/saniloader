@@ -4,7 +4,7 @@ Copyright © 2023 saniyar.dev
 */
 package main
 
-import "hamgit.ir/saniyar.dev/saniloader/cmd"
+import "saniloader/cmd"
 
 func main() {
 	cmd.Execute()
