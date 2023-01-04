@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -18,6 +19,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
     maxLen := len(cfg.Backends)
     mu.Lock()
     currentBackend := cfg.Backends[idx%maxLen]
+    fmt.Println(currentBackend.Name, currentBackend.URL)
     targetURL, err := url.Parse(currentBackend.URL)
     if err != nil {
         log.Fatal(err.Error())
