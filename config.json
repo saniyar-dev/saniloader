@@ -4,13 +4,9 @@
   },
   "backends": [
     {
-      "id": "5042c2ea6f15",
-      "name": "nginx-test-test",
       "url": "http://localhost:9001/"
     },
     {
-      "id": "618761b95fdc",
-      "name": "nginx-test",
       "url": "http://localhost:9000/"
     }
   ]

@@ -4,6 +4,7 @@ Copyright © 2023 saniyar.dev
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"saniloader/config"
 	"saniloader/server"
@@ -25,8 +26,9 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	// err := rootCmd.Execute()
-	cfg, err := config.ReadConfig()
+	cfg, err := config.ReadConfig("./config.json")
 	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 	server.Serve(cfg)
