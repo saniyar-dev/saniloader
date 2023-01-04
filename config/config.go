@@ -24,13 +24,6 @@ type BackendType struct {
 	IsDead bool
 }
 
-type ContainerType struct {
-	Index int
-	Id string
-	Name string
-	IsDead bool
-}
-
 var cfg ConfigType
 
 func ReadConfig() (ConfigType, error) {
@@ -73,22 +66,21 @@ func CheckConfig(cfg ConfigType) (ConfigType, error) {
 	return newCfg, nil
 }
 
-func getDockerContainers() ([]ContainerType, error) {
+func getDockerContainers() ([]BackendType, error) {
 	cmd := exec.Command("bash", "-c", `sudo docker ps --format '{{ .ID }}\t{{.Names}}'`)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return []ContainerType{}, err
+		return []BackendType{}, err
 	}
 	
-	var ans []ContainerType
+	var ans []BackendType
 	containersOutput := strings.Split(string(output), "\n")
-	for index, containerDataLine := range containersOutput {
+	for _, containerDataLine := range containersOutput {
 		containerDataArr := strings.Split(containerDataLine, "\t")
 		if len(containerDataArr) < 2 {
 			continue
 		}
-		ans = append(ans, ContainerType{
-			Index: index, 
+		ans = append(ans, BackendType{
 			Id: containerDataArr[0], 
 			Name: containerDataArr[1],
 			IsDead: false,
