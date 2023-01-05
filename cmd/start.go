@@ -14,6 +14,7 @@ import (
 
 var ConfigPath string = "none"
 var DynamicMode bool = false
+var OnlyConfig bool = false
 
 func readConfigFile() (config.ConfigType, error) {
 	if ConfigPath != "none" {
@@ -22,15 +23,30 @@ func readConfigFile() (config.ConfigType, error) {
 	return config.ConfigType{}, nil
 }
 
+func getCfgMade() (config.ConfigType, error) {
+	if OnlyConfig {
+		return config.ConfigType{}, nil
+	} 
+	return config.MakeConfig()
+}
 
 func RunStart (cmd *cobra.Command, args []string) {
+	if OnlyConfig && ConfigPath == "none" {
+		fmt.Println("You should use --config flag with --only flag.")
+		os.Exit(1)
+	}
+
 	cfgFile, err := readConfigFile()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	cfgMade, err := config.MakeConfig()
+	cfgMade, err := getCfgMade()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	cfg := config.CombineConfigs(cfgFile, cfgMade)
 	server.Serve(cfg)
@@ -49,4 +65,5 @@ func init() {
 
 	startCmd.PersistentFlags().StringVarP(&ConfigPath, "config", "c", "none", "use config file within path/to/config.json")
 	startCmd.Flags().BoolVarP(&DynamicMode, "dynamic", "d", false, "use this flag to enter dynamic mode.")
+	startCmd.Flags().BoolVarP(&OnlyConfig, "only", "o", false, "use this flag to only use the specified config file to proceed")
 }
