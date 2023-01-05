@@ -71,7 +71,7 @@ func MakeConfig() (ConfigType, error){
 }
 
 func getContainerIp(containerName string) (string, error) {
-	cmd := exec.Command("bash", "-c", "sudo docker container inspect " + containerName + " --format '{{.NetworkSettings.IPAddress}}'")
+	cmd := exec.Command("bash", "-c", "docker container inspect " + containerName + " --format '{{.NetworkSettings.IPAddress}}'")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
@@ -80,7 +80,7 @@ func getContainerIp(containerName string) (string, error) {
 }
 
 func getDockerContainers() ([]BackendType, error) {
-	cmd := exec.Command("bash", "-c", "sudo docker ps --format '{{.ID}}\t{{.Names}}'")
+	cmd := exec.Command("bash", "-c", "docker ps --format '{{.ID}}\t{{.Names}}'")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return []BackendType{}, err
