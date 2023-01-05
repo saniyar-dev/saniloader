@@ -25,6 +25,9 @@ type BackendType struct {
 }
 
 var _DEFAULTPORT string = "3000"
+var ConfigPath string = "none"
+var DynamicMode bool = false
+var OnlyConfig bool = false
 
 func correctConfig(cfg ConfigType) (ConfigType, error) {
 	if cfg.Proxy.Port == "" {
