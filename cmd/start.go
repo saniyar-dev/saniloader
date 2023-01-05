@@ -22,8 +22,17 @@ func startNormalMode() error {
 	return nil
 }
 
-func startDynamicMode(configChannel chan config.ConfigType) {
-	
+func startDynamicMode(configChannel chan config.ConfigType) error {
+	baseCfg, err := config.GetCfg()
+	if err != nil {
+		return err
+	}
+	go server.Serve(baseCfg)
+
+	for {
+		cfg := <- configChannel
+		server.ServerConfig = cfg
+	}
 }
 
 func RunStart (cmd *cobra.Command, args []string) {
@@ -33,8 +42,9 @@ func RunStart (cmd *cobra.Command, args []string) {
 	}
 
 	if config.DynamicMode {
-		var configChannel chan config.ConfigType
-		go startDynamicMode(configChannel)
+		configChannel := make(chan config.ConfigType)
+		go config.MakeConfigDynamic(configChannel)
+		startDynamicMode(configChannel)
 	} else {
 		err := startNormalMode()
 		if err != nil {

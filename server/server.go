@@ -13,13 +13,12 @@ import (
 var mu sync.Mutex
 var idx int = 0
 
-var cfg config.ConfigType
-var s http.Server
+var ServerConfig config.ConfigType
 
 func lbHandler(w http.ResponseWriter, r *http.Request) {
-    maxLen := len(cfg.Backends)
+    maxLen := len(ServerConfig.Backends)
     mu.Lock()
-    currentBackend := cfg.Backends[idx%maxLen]
+    currentBackend := ServerConfig.Backends[idx%maxLen]
     fmt.Println(currentBackend.Name, currentBackend.URL)
     targetURL, err := url.Parse(currentBackend.URL)
     if err != nil {
@@ -32,18 +31,14 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Serve(serveCfg config.ConfigType) {
-	cfg = serveCfg
+	ServerConfig = serveCfg
 	var err error
 
-    s = http.Server{
-        Addr:    ":" + cfg.Proxy.Port,
+    s := http.Server{
+        Addr:    ":" + ServerConfig.Proxy.Port,
         Handler: http.HandlerFunc(lbHandler),
     }
     if err = s.ListenAndServe(); err != nil {
         log.Fatal(err.Error())
     }
-}
-
-func StopServe() error {
-    return s.Close()
 }
