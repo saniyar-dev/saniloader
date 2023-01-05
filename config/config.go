@@ -103,3 +103,16 @@ func getDockerContainers() ([]BackendType, error) {
 
 	return ans, nil
 }
+
+func CombineConfigs (cfg0 ConfigType, cfg1 ConfigType) ConfigType {
+	var ansCfg ConfigType
+
+	if cfg0.Proxy.Port != "" {
+		ansCfg.Proxy.Port = cfg0.Proxy.Port
+	} else {
+		ansCfg.Proxy.Port = cfg1.Proxy.Port
+	}
+
+	ansCfg.Backends = append(cfg0.Backends, cfg1.Backends...)
+	return ansCfg
+}
