@@ -12,44 +12,46 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var ConfigPath string = "none"
-var DynamicMode bool = false
-var OnlyConfig bool = false
 
-func readConfigFile() (config.ConfigType, error) {
-	if ConfigPath != "none" {
-		return config.ReadConfig(ConfigPath)
+func startNormalMode() error {
+	cfg, err := config.GetCfg()
+	if err != nil {
+		return err
 	}
-	return config.ConfigType{}, nil
+	server.Serve(cfg)
+	return nil
 }
 
-func getCfgMade() (config.ConfigType, error) {
-	if OnlyConfig {
-		return config.ConfigType{}, nil
-	} 
-	return config.MakeConfig()
+func startDynamicMode(configChannel chan config.ConfigType) error {
+	baseCfg, err := config.GetCfg()
+	if err != nil {
+		return err
+	}
+	go server.Serve(baseCfg)
+
+	for {
+		cfg := <- configChannel
+		server.ServerConfig = cfg
+	}
 }
 
 func RunStart (cmd *cobra.Command, args []string) {
-	if OnlyConfig && ConfigPath == "none" {
+	if config.OnlyConfig && config.ConfigPath == "none" {
 		fmt.Println("You should use --config flag with --only flag.")
 		os.Exit(1)
 	}
 
-	cfgFile, err := readConfigFile()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	if config.DynamicMode {
+		configChannel := make(chan config.ConfigType)
+		go config.MakeConfigDynamic(configChannel)
+		startDynamicMode(configChannel)
+	} else {
+		err := startNormalMode()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
-
-	cfgMade, err := getCfgMade()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	cfg := config.CombineConfigs(cfgFile, cfgMade)
-	server.Serve(cfg)
 }
 
 var startCmd = &cobra.Command{
@@ -63,7 +65,7 @@ if you want to enter dynamic mode, you must specify the proper flag. By default 
 func init() {
 	rootCmd.AddCommand(startCmd)
 
-	startCmd.PersistentFlags().StringVarP(&ConfigPath, "config", "c", "none", "use config file within path/to/config.json")
-	startCmd.Flags().BoolVarP(&DynamicMode, "dynamic", "d", false, "use this flag to enter dynamic mode.")
-	startCmd.Flags().BoolVarP(&OnlyConfig, "only", "o", false, "use this flag to only use the specified config file to proceed")
+	startCmd.PersistentFlags().StringVarP(&config.ConfigPath, "config", "c", "none", "use config file within path/to/config.json")
+	startCmd.Flags().BoolVarP(&config.DynamicMode, "dynamic", "d", false, "use this flag to enter dynamic mode.")
+	startCmd.Flags().BoolVarP(&config.OnlyConfig, "only", "o", false, "use this flag to only use the specified config file to proceed")
 }
