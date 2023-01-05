@@ -14,6 +14,7 @@ var mu sync.Mutex
 var idx int = 0
 
 var cfg config.ConfigType
+var s http.Server
 
 func lbHandler(w http.ResponseWriter, r *http.Request) {
     maxLen := len(cfg.Backends)
@@ -34,11 +35,15 @@ func Serve(serveCfg config.ConfigType) {
 	cfg = serveCfg
 	var err error
 
-    s := http.Server{
+    s = http.Server{
         Addr:    ":" + cfg.Proxy.Port,
         Handler: http.HandlerFunc(lbHandler),
     }
     if err = s.ListenAndServe(); err != nil {
         log.Fatal(err.Error())
     }
+}
+
+func StopServe() error {
+    return s.Close()
 }

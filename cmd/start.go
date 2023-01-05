@@ -13,18 +13,17 @@ import (
 )
 
 
-func readConfigFile() (config.ConfigType, error) {
-	if config.ConfigPath != "none" {
-		return config.ReadConfig(config.ConfigPath)
+func startNormalMode() error {
+	cfg, err := config.GetCfg()
+	if err != nil {
+		return err
 	}
-	return config.ConfigType{}, nil
+	server.Serve(cfg)
+	return nil
 }
 
-func getCfgMade() (config.ConfigType, error) {
-	if config.OnlyConfig {
-		return config.ConfigType{}, nil
-	} 
-	return config.MakeConfig()
+func startDynamicMode(configChannel chan config.ConfigType) {
+	
 }
 
 func RunStart (cmd *cobra.Command, args []string) {
@@ -33,20 +32,16 @@ func RunStart (cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	cfgFile, err := readConfigFile()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	if config.DynamicMode {
+		var configChannel chan config.ConfigType
+		go startDynamicMode(configChannel)
+	} else {
+		err := startNormalMode()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
-
-	cfgMade, err := getCfgMade()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	cfg := config.CombineConfigs(cfgFile, cfgMade)
-	server.Serve(cfg)
 }
 
 var startCmd = &cobra.Command{
