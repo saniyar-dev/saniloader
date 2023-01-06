@@ -15,13 +15,17 @@ type MetricsChannelType struct {
 	Data MetricsType
 }
 
-func ServeMetrics(metricsChannel chan MetricsChannelType) {
-	s := http.Server{
-			Addr: ":" + "9191",
-			Handler: http.HandlerFunc(metricsHttpHandler),
-		}
+func metricsHttpHandler(w http.ResponseWriter, r *http.Request) {
+	
+}
 
-		if err := s.ListenAndServe(); err != nil {
-			log.Fatal(err.Error())
-		}
+func RunMetrics() {
+	s := http.Server{
+		Addr: ":" + "9191",
+		Handler: http.HandlerFunc(metricsHttpHandler),
+	}
+
+	if err := s.ListenAndServe(); err != nil {
+		log.Fatal(err.Error())
+	}
 }

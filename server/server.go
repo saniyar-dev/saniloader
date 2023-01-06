@@ -7,7 +7,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"saniloader/config"
-	"saniloader/metrics"
 	"sync"
 )
 
@@ -31,9 +30,12 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
     reverseProxy.ServeHTTP(w, r)
 }
 
-func Serve(serveCfg config.ConfigType, metricsChannel chan metrics.MetricsChannelType) {
-	ServerConfig = serveCfg
+func Serve() {
 	var err error
+	ServerConfig, err = config.GetCfg()
+    if err != nil {
+        log.Fatal(err.Error())
+    }
 
     s := http.Server{
         Addr:    ":" + ServerConfig.Proxy.Port,

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func MakeConfigDynamic(configChannel chan ConfigType) {
+func MakeConfigDynamic() {
 	for {
 		cfg, err := GetCfg()
 		if err != nil {
@@ -14,7 +14,7 @@ func MakeConfigDynamic(configChannel chan ConfigType) {
 			os.Exit(1)
 		}
 
-		configChannel <- cfg
+		ConfigChannel <- cfg
 		time.Sleep(5 * time.Second)
 	}
 }
