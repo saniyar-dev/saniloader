@@ -19,6 +19,7 @@ var _DEFAULTPORT string = "3000"
 var ConfigPath string = "none"
 var DynamicMode bool = false
 var OnlyConfig bool = false
+var ConfigChannel = make(chan ConfigType)
 
 
 func GetCfg() (ConfigType, error) {

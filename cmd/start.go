@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"saniloader/config"
+	"saniloader/metrics"
 	"saniloader/server"
 
 	"github.com/spf13/cobra"
@@ -14,23 +15,19 @@ import (
 
 
 func startNormalMode() error {
-	cfg, err := config.GetCfg()
-	if err != nil {
-		return err
-	}
-	server.Serve(cfg)
+	go metrics.RunMetrics()
+	server.Serve()
 	return nil
 }
 
-func startDynamicMode(configChannel chan config.ConfigType) error {
-	baseCfg, err := config.GetCfg()
-	if err != nil {
-		return err
-	}
-	go server.Serve(baseCfg)
+func startDynamicMode() error {
+	go metrics.RunMetrics()
+	go server.Serve()
+
+	go config.MakeConfigDynamic()
 
 	for {
-		cfg := <- configChannel
+		cfg := <- config.ConfigChannel
 		server.ServerConfig = cfg
 	}
 }
@@ -42,9 +39,11 @@ func RunStart (cmd *cobra.Command, args []string) {
 	}
 
 	if config.DynamicMode {
-		configChannel := make(chan config.ConfigType)
-		go config.MakeConfigDynamic(configChannel)
-		startDynamicMode(configChannel)
+		err := startDynamicMode()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	} else {
 		err := startNormalMode()
 		if err != nil {
