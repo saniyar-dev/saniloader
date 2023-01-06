@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"saniloader/config"
+	"saniloader/metrics"
 	"saniloader/server"
 
 	"github.com/spf13/cobra"
@@ -18,7 +19,10 @@ func startNormalMode() error {
 	if err != nil {
 		return err
 	}
-	server.Serve(cfg)
+
+	metricsChannel := make(chan metrics.MetricsChannelType)
+	go metrics.ServeMetrics(metricsChannel)
+	server.Serve(cfg, metricsChannel)
 	return nil
 }
 
@@ -27,7 +31,9 @@ func startDynamicMode(configChannel chan config.ConfigType) error {
 	if err != nil {
 		return err
 	}
-	go server.Serve(baseCfg)
+	metricsChannel := make(chan metrics.MetricsChannelType)
+	go server.Serve(baseCfg, metricsChannel)
+	go metrics.ServeMetrics(metricsChannel)
 
 	for {
 		cfg := <- configChannel
