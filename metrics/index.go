@@ -2,7 +2,7 @@ package metrics
 
 type MetricsType struct {
 	Tag string
-	value int
+	Value int
 }
 
 type MetricsChannelType struct {

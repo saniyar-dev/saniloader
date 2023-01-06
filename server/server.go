@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"saniloader/config"
+	"saniloader/metrics"
 	"sync"
 )
 
@@ -14,6 +15,10 @@ var mu sync.Mutex
 var idx int = 0
 
 var ServerConfig config.ConfigType
+
+func addMetrics(currentBackend config.BackendType) {
+    metrics.MetricsChannel <- metrics.MetricsChannelType{Name: currentBackend.Name, Data: metrics.MetricsType{Tag: "NumberOfRequests", Value: 1}}
+}
 
 func lbHandler(w http.ResponseWriter, r *http.Request) {
     maxLen := len(ServerConfig.Backends)
@@ -28,6 +33,7 @@ func lbHandler(w http.ResponseWriter, r *http.Request) {
     mu.Unlock()
     reverseProxy := httputil.NewSingleHostReverseProxy(targetURL)
     reverseProxy.ServeHTTP(w, r)
+    addMetrics(currentBackend)
 }
 
 func Serve() {
