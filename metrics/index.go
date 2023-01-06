@@ -15,6 +15,8 @@ type MetricsChannelType struct {
 	Data MetricsType
 }
 
+var MetricsChannel = make(chan MetricsChannelType)
+
 func metricsHttpHandler(w http.ResponseWriter, r *http.Request) {
 	
 }
