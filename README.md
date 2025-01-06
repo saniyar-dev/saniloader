@@ -1,6 +1,6 @@
 # SaniLoader
 
-SaniLoader is a custom load balancer written in [go](https://go.dev/).
+SaniLoader is a custom load balancer written in [go](https://go.dev/). It's just for practicing.
 
 ## Features
 
